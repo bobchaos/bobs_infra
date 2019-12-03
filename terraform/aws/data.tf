@@ -18,18 +18,10 @@ data "aws_availability_zones" "available" {
 # - hart_processor.sh : sets up Biome or Chef Habitat
 
 # User data for the Chef server
-data "template_file" "chef-server_awscli" {
-  template = file("${path.module}/templates/awscli.sh.tpl")
+data "template_file" "setup-chef-server" {
+  template = file("./templates/install_chef-server.sh.tpl")
 
-  vars {
-    
-  }
-}
-
-data "template_file" "chef-server_awscli" {
-  template = file("${path.module}/templates/install_chef-server.sh.tpl")
-
-  vars {
+  vars = {
 
   }
 }
@@ -41,14 +33,32 @@ data "template_cloudinit_config" "chef-server" {
   # The docs are a lie, the files are processed alphabetically, not
   # in the declared order, hence the numbered prefixes on filenames
   part {
-    filename = "00_awscli.sh"
-    content_type = "text/cloud-config"
-    content = data.template_file.chef-server_prereqs.rendered
-  }
-
-  part {
-    filename = "01_install_chef-server"
+    filename     = "00_setup_chef-server"
     content_type = "text/x-shellscript"
-    content = data.template_file.chef-server_prereqs.rendered
+    content      = data.template_file.setup-chef-server.rendered
+  }
+}
+
+# Get the latest CentOS AMI
+data "aws_ami" "centos7" {
+  most_recent = true
+  owners      = ["679593333241"] # The marketplace
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
+  filter {
+    name   = "is-public"
+    values = ["true"]
+  }
+  filter {
+    name = "product-code"
+    # CentOS 7's code. No official Centos 8 AMI published as of this writing :(
+    # https://wiki.centos.org/Cloud/AWS for other CentOS product codes
+    values = ["aw0evgkw8e5c1q413zgy5pjce"]
   }
 }
