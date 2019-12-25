@@ -34,10 +34,27 @@ variable "vpc_security_group_ids" {
   description = "A list of security groups to assign the instance"
 }
 
-variable "public" {
-  type = bool
-  description = "Is the instance to be exposed directly to the internet? Causes an EIP to be allocated"
+variable "topology" {
+  type = string
+  description = "public | private | protected | offloaded: protected is behind ALB with end-to-end SSL, offloaded is behind ALB with SSL offloading, public and private are just what they sound like."
   default = false
+}
+
+variable "port" {
+  type = number
+  description = "The port where to direct traffic. Protocol is derived from topology"
+  default = 80
+}
+
+variable "alb_listener_arn" {
+  type = string
+  description = "For protected and offloaded topologies, the arn of the load balancer listener to attach to"
+  default = null
+}
+
+variable "zone_id" {
+  type = string
+  description = "The Hosted Zone ID where route53 records will be created"
 }
 
 variable "tags" {

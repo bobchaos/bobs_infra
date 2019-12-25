@@ -38,12 +38,9 @@ resource aws_security_group "bastion" {
   vpc_id      = module.main_vpc.vpc_id
 
   ingress {
-    # TLS (change to whatever ports you need)
-    from_port = 22
-    to_port   = 22
-    protocol  = "tcp"
-    # Please restrict your ingress to only necessary IPs and ports.
-    # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -66,5 +63,72 @@ module "bastion" {
   iam_instance_profile   = var.bastion_iam_instance_profile
   key_name               = var.key_name
   user_data              = null
-  public                 = true
+  topology               = "public"
+  zone_id                = var.zone_id
+}
+
+# The main Application Load Balancer that will shield our instances and provide ssl offloading
+resource aws_security_group "main_alb" {
+  name_prefix = "${var.name_prefix}-main-alb"
+  description = "Allows traffic from internet to LB, and from LB to destination target groups"
+  vpc_id      = module.main_vpc.vpc_id
+  # Rules not included. Using external rules allows instances to add themselves as needed
+}
+
+resource "aws_security_group_rule" "main_alb_443" {
+  type        = "ingress"
+  from_port   = 443
+  to_port     = 443
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.main_alb.id
+}
+
+resource aws_lb "main" {
+  name_prefix        = var.name_prefix
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.main_alb.id]
+  subnets            = module.main_vpc.public_subnets
+  tags               = local.tags
+}
+
+resource "aws_lb_listener" "main_443" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = "arn:aws:iam::187416307283:server-certificate/test_cert_rab3wuqwgja25ct3n4jdj2tzu4"
+  default_action {
+    type             = "fixed-response"
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "There's nothing here :O You sure you got the address right?"
+      status_code = "404"
+    }
+  }
+}
+
+# A Goiardi Server
+resource aws_security_group "goiardi" {
+  name_prefix = "goiardi"
+  description = "Allows https ingress"
+  vpc_id      = module.main_vpc.vpc_id
+
+  ingress {
+    # TLS (change to whatever ports you need)
+    from_port = 443
+    to_port   = 443
+    protocol  = "tcp"
+    # Please restrict your ingress to only necessary IPs and ports.
+    # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }

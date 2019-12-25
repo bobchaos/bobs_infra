@@ -2,6 +2,7 @@
 locals {
   use_ebs = var.ebs_volumes == null ? false : true
   vpc_id = data.aws_subnet.this.vpc_id
+  domain = replace(data.aws_route53_zone.this.name, "/\\.$/", "")
 }
 
 # The ASG proper
@@ -25,6 +26,7 @@ resource "aws_autoscaling_group" "this" {
   desired_capacity = 1
   max_size = 1
   min_size = 1
+  target_group_arns = var.topology == "protected" || var.topology == "offloaded" ? aws_lb_target_group.this[0].arn : null
   launch_template {
     id = aws_launch_template.this.id
     version = "$Latest"
@@ -56,7 +58,33 @@ resource "aws_ebs_volume" "this" {
 # An EIP if this instance is internet facing. Do note there is no attachement for the
 # same reason as the EBS volume.
 resource "aws_eip" "this" {
-  count = var.public ? 1 : 0
+  count = var.topology == "public" ? 1 : 0
   vpc = true
   tags = var.tags
+}
+
+# Everything that follows is used to enable the "protected" and "offloaded" topology
+resource "aws_lb_target_group" "this" {
+  count = var.topology == "protected" || var.topology == "offloaded" ? 1 : 0
+  name_prefix     = var.name_prefix
+  port     = var.port
+  protocol = var.topology == "protected" ? "HTTPS" : "HTTP"
+  vpc_id   = local.vpc_id
+}
+
+# Host based routing for protected instances
+resource "aws_lb_listener_rule" "this" {
+  count = var.topology == "protected" || var.topology == "offloaded" ? 1 : 0
+  listener_arn = var.alb_listener_arn
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.this[0].arn
+  }
+
+  condition {
+    host_header {
+      values = ["${var.name_prefix}.${local.domain}"]
+    }
+  }
 }

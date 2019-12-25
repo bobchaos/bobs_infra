@@ -2,8 +2,12 @@ data "aws_subnet" "this" {
   id = random_shuffle.subnets.result[0]
 }
 
+data "aws_route53_zone" "this" {
+  zone_id = var.zone_id
+}
+
 data "template_file" "fetch_eip" {
-  count    = var.public ? 1 : 0
+  count    = var.topology == "public" ? 1 : 0
   template = file("${path.module}/templates/fetch_eip.sh.tpl")
   vars = {
     # This crazy looking pattern is required, otherwise you won't be able to destroy

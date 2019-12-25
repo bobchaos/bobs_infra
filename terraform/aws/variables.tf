@@ -53,3 +53,9 @@ variable "tags" {
   description = "tags to apply to all relevant assets"
   default     = {}
 }
+
+variable "zone_id" {
+  type = string
+  description = "The zone to create r53 records in"
+  default = "Z2RQ53XGJPAY8L"
+}
