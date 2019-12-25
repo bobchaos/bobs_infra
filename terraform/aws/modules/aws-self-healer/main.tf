@@ -63,6 +63,27 @@ resource "aws_eip" "this" {
   tags = var.tags
 }
 
+# A dns record; Load balanced instances use alias records, others use plain A
+resource "aws_route53_record" "thisa" {
+  # Private instances cannot have DNS assigned during terraform run since it won't exist
+  # until the ASG's done it's part. Cloud-init can still accomodate such needs
+  count = var.topology == "private" ? 0 : 1
+  zone_id = var.zone_id
+  name = var.name_prefix
+  type = "A"
+  ttl = var.topology == "protected" || var.topology == "offloaded" ? null : "300"
+  records = var.topology == "protected" || var.topology == "offloaded" ? null : [aws_eip.this[0].public_ip]
+
+  dynamic "alias" {
+    for_each = var.topology == "protected" || var.topology == "offloaded" ? ["alias"] : []
+    content {
+      name = data.aws_lb.this.dns_name
+      zone_id = var.zone_id 
+      evaluate_target_health = false
+    }
+  }
+}
+
 # Everything that follows is used to enable the "protected" and "offloaded" topology
 resource "aws_lb_target_group" "this" {
   count = var.topology == "protected" || var.topology == "offloaded" ? 1 : 0

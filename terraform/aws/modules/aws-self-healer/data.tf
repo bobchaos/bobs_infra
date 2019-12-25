@@ -6,6 +6,16 @@ data "aws_route53_zone" "this" {
   zone_id = var.zone_id
 }
 
+data "aws_lb" "this" {
+  count = var.topology == "protected" || var.topology == "offloaded" ? 1 : 0
+  arn = data.aws_lb_listener.this[0].load_balancer_arn
+}
+
+data "aws_lb_listener" "this" {
+  count = var.topology == "protected" || var.topology == "offloaded" ? 1 : 0
+  arn = var.alb_listener_arn
+}
+
 data "template_file" "fetch_eip" {
   count    = var.topology == "public" ? 1 : 0
   template = file("${path.module}/templates/fetch_eip.sh.tpl")
