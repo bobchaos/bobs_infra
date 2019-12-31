@@ -18,24 +18,24 @@ data "aws_availability_zones" "available" {
 # - hart_processor.sh : sets up Biome or Chef Habitat
 
 # User data for the Chef server
-data "template_file" "setup-chef-server" {
-  template = file("./templates/install_chef-server.sh.tpl")
+data "template_file" "install_goiardi" {
+  template = file("./templates/zero_package.sh.tpl")
 
   vars = {
-
+    cinc_version = "15.6.10"
   }
 }
 
-data "template_cloudinit_config" "chef-server" {
+data "template_cloudinit_config" "goiardi" {
   gzip          = true
   base64_encode = true
 
   # The docs are a lie, the files are processed alphabetically, not
   # in the declared order, hence the numbered prefixes on filenames
   part {
-    filename     = "00_setup_chef-server"
+    filename     = "00_install_goiardi.sh"
     content_type = "text/x-shellscript"
-    content      = data.template_file.setup-chef-server.rendered
+    content      = data.template_file.install_goiardi.rendered
   }
 }
 
@@ -62,3 +62,25 @@ data "aws_ami" "centos7" {
     values = ["aw0evgkw8e5c1q413zgy5pjce"]
   }
 }
+
+# IAM Policy documents
+data "aws_iam_policy_document" "bucket_and_asm" {
+  statement {
+    actions   = ["s3:GetObject"]
+    sid       = "${replace(var.name_prefix, "-", "")}Bucket"
+    effect    = "Allow"
+    resources = ["${aws_s3_bucket.static_assets.arn}/*"]
+  }
+  statement {
+    actions = [
+      "secretsmanager:GetResourcePolicy",
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:DescribeSecret",
+      "secretsmanager:ListSecretVersionIds"
+    ]
+    sid       = "${replace(var.name_prefix, "-", "")}ASM"
+    effect    = "Allow"
+    resources = [aws_secretsmanager_secret.main_postgres_db_data.arn]
+  }
+}
+

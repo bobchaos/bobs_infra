@@ -8,12 +8,52 @@ data "aws_route53_zone" "this" {
 
 data "aws_lb" "this" {
   count = var.topology == "protected" || var.topology == "offloaded" ? 1 : 0
-  arn = data.aws_lb_listener.this[0].load_balancer_arn
+  arn   = data.aws_lb_listener.this[0].load_balancer_arn
 }
 
 data "aws_lb_listener" "this" {
   count = var.topology == "protected" || var.topology == "offloaded" ? 1 : 0
-  arn = var.alb_listener_arn
+  arn   = var.alb_listener_arn
+}
+
+data "aws_ami" "this" {
+  owners = ["self", "aws-marketplace"]
+  filter {
+    name   = "image-id"
+    values = [var.ami_id]
+  }
+}
+
+data "aws_iam_policy_document" "this_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "this_instance" {
+  dynamic "statement" {
+    for_each = var.topology == "public" ? ["add me"] : []
+    content {
+      sid       = "${replace(var.name_prefix, "-", "")}Eip"
+      effect    = "Allow"
+      actions   = ["ec2:DescribeAddresses", "ec2:AssociateAddress"]
+      resources = ["*"]
+    }
+  }
+  dynamic "statement" {
+    for_each = var.ebs_volumes != null ? aws_ebs_volume.this[*].arn : []
+    content {
+      sid       = "${replace(var.name_prefix, "-", "")}Ebs"
+      effect    = "Allow"
+      actions   = ["ec2:DescribeVolumeStatus", "ec2:DescribeVolumes", "ec2:AttachVolume"]
+      resources = statement.value
+    }
+  }
 }
 
 data "template_file" "fetch_eip" {
@@ -41,9 +81,9 @@ data "template_cloudinit_config" "this" {
   base64_encode = true
 
   part {
-    filename = "00_init.sh"
+    filename     = "00_init.sh"
     content_type = "text/x-shellscript"
-    content = file("${path.module}/templates/init.sh.tpl")
+    content      = file("${path.module}/templates/init.sh.tpl")
   }
 
   dynamic "part" {
@@ -71,7 +111,7 @@ data "template_cloudinit_config" "this" {
   dynamic "part" {
     for_each = var.user_data != null ? list(var.user_data) : []
     content {
-      filename =  "03_user_supplied_conf"
+      filename     = "03_user_supplied_conf"
       content_type = "text/cloud-config-archive"
       content      = var.user_data
     }

@@ -43,6 +43,12 @@ variable "bastion_iam_instance_profile" {
   default     = "self-healer-edge-node"
 }
 
+variable "goiardi_iam_instance_profile" {
+  type        = string
+  description = "The instance profile to assign to Goiardi. See README for minimum requirements"
+  default     = "self-healer-edge-node"
+}
+
 variable "key_name" {
   type        = string
   description = "Name of the SSH keypair to assign the instance"
@@ -55,7 +61,30 @@ variable "tags" {
 }
 
 variable "zone_id" {
-  type = string
+  type        = string
   description = "The zone to create r53 records in"
-  default = "Z2RQ53XGJPAY8L"
+  default     = "Z2RQ53XGJPAY8L"
+}
+
+variable "certificate_arn" {
+  type        = string
+  description = "An ACM certificate ARN for use with the load balancer and protected assets"
+  default     = "arn:aws:acm:us-east-1:943840344434:certificate/cf308c3c-9723-441a-bc45-7790df0f1920"
+}
+
+variable "main_db_pw" {
+  type        = string
+  description = "Password for the main database. Please don't commit it in git :O "
+}
+
+variable "cinc_version" {
+  type        = string
+  description = "The version of cinc to install on nodes that require it"
+  default     = "15.6.10"
+}
+
+variable "protect_assets" {
+  type        = bool
+  description = "Set to true to enable protection on key persistent assets, like the main database and EBS volumes"
+  default     = false
 }

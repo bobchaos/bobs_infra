@@ -13,6 +13,9 @@ terraform/**/.terraform/*
 **/*.tfstate
 **/*.tfstate.*
 
+# Private tfvars file
+**/priv.tfvars
+
 # Crash log files
 terraform/**/crash.log
 
