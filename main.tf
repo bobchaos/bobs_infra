@@ -215,9 +215,9 @@ resource aws_security_group "goiardi" {
   }
 
   ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
     security_groups = [aws_security_group.bastion.id]
   }
 
