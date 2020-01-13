@@ -127,7 +127,7 @@ resource "aws_route53_record" "thisa" {
   name    = var.name_prefix
   type    = "A"
   ttl     = var.topology == "protected" || var.topology == "offloaded" ? null : "300"
-  records = var.topology == "protected" || var.topology == "offloaded" ? null : [aws_eip.this[0].public_ip]
+  records = var.topology == "public" ? [aws_eip.this[0].public_ip] : null
 
   dynamic "alias" {
     for_each = var.topology == "protected" || var.topology == "offloaded" ? ["alias"] : []
