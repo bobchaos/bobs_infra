@@ -1,0 +1,23 @@
+---
+driver:
+  name: terraform
+  variable_files:
+    - priv.tfvars
+
+provisioner:
+  name: terraform
+
+verifier:
+  name: terraform
+  format: doc
+  systems:
+    - name: default
+      backend: aws
+      controls:
+        - default
+
+platforms:
+  - name: "aws"
+
+suites:
+  - name: default
