@@ -49,9 +49,17 @@ resource "aws_s3_bucket" "static_assets" {
   }
 }
 
+# An empty security group assigned to internal instances that require postgres access
+# The postgres security group only allows traffic from this one
+resource aws_security_group "req-db" {
+  name_prefix = "${var.name_prefix}-require-db"
+  description = "Attached to instances that require access to main postgres db"
+  vpc_id = module.main_vpc.vpc_id
+}
+
 # A self-healing bastion
 resource aws_security_group "bastion" {
-  name_prefix = "bastion"
+  name_prefix = "${var.name_prefix}-bastion"
   description = "Allows external ssh"
   vpc_id      = module.main_vpc.vpc_id
 
@@ -75,7 +83,8 @@ module "bastion" {
 
   name_prefix            = "${var.name_prefix}-bastion"
   vpc_subnets            = module.main_vpc.public_subnets
-  vpc_security_group_ids = [aws_security_group.bastion.id]
+  # We allow DB access so operators can tunnel through the bastion and into the DB
+  vpc_security_group_ids = [aws_security_group.bastion.id, aws_security_group.req-db.id]
   ami_id                 = data.aws_ami.centos7.id
   instance_type          = "t3a.nano"
   key_name               = var.key_name
@@ -136,7 +145,7 @@ resource "aws_security_group" "main_postgres" {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = concat(var.main_vpc_private_subnets, var.main_vpc_public_subnets)
+    security_groups = [aws_security_group.req-db.id]
   }
 
   egress {

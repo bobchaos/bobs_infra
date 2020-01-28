@@ -58,3 +58,23 @@ output "main_alb_sg_id" {
   value       = aws_security_group.main_alb.id
   description = "ID of the main ALB's security group"
 }
+
+output "main_alb_arn" {
+  value = aws_lb.main.arn
+  description = "ARN of the main load balancer"
+}
+
+output "account_availability_zones" {
+  value = data.aws_availability_zones.available.names
+  description = "A list of all availability zones accessible to your account in the main region"
+}
+
+output "main_postgres_sg_id" {
+  value       = aws_security_group.main_postgres.id
+  description = "ID of the main postgres instance's security group"
+}
+
+output "req_db_sg_id" {
+  value = aws_security_group.req-db.id
+  description = "ID of the security group that allows traffic to the postgres instance"
+}

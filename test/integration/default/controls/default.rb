@@ -22,6 +22,12 @@ control 'default' do
     it { should_not be_public }
   end
 
+  describe aws_security_group(attribute('req_db_sg_id')) do
+    it { should exist }
+    its('inbound_rules_count') { should cmp 0 }
+    its('outbound_rules_count') { should cmp 0 }
+  end
+
   describe aws_security_group(attribute('bastion_sg_id')) do
     it { should exist }
     it { should allow_in_only(port: 22, protocol: 'tcp', ipv4_range: '0.0.0.0/0') }
@@ -31,5 +37,23 @@ control 'default' do
     it { should exist }
     it { should allow_in_only(port: 22, protocol: "tcp", position: 2, security_group: attribute('bastion_sg_id')) }
     it { should allow_in_only(port: 80, protocol: "tcp", position: 1, security_group: attribute('main_alb_sg_id')) }
+  end
+
+  describe aws_security_group(attribute('main_alb_sg_id')) do
+    it { should exist }
+    it { should allow_in_only(port: 443, protocol: "tcp", ipv4_range: '0.0.0.0/0') }
+  end
+
+  describe aws_alb(attribute('main_alb_arn')) do
+    it { should exist }
+    its('zone_names.count') { should be >= 3 }
+    its('security_groups') { should cmp [attribute('main_alb_sg_id')] }
+    its('scheme') { should cmp 'internet-facing' }
+    its('vpc_id') { should cmp attribute('main_vpc_id') }
+  end
+
+  describe aws_security_group(attribute('main_postgres_sg_id')) do
+    it { should exist }
+    it { should allow_in_only(port: 5432, protocol: "tcp", security_group: attribute('req_db_sg_id')) }
   end
 end
