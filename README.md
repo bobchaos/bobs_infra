@@ -1,4 +1,4 @@
-# bobs_infra
+# bobs\_infra
 Experiments with Cinc, TF12, and whatever catches my attention. Not intended for distribution, and as such I'm playing fast and loose with my devlopment practices, but you're welcome to fork or copy pieces.
 
 ## General Functioning and caveats
@@ -15,7 +15,7 @@ The bastion currently has no configuration, but I'm likely to add a hardening po
 
 All IAM permissions are given using the principle of least privilege. Networking permissions are a bit looser so I can demo this from anywhere, and because writting egress rules is no fun :/
 
-While I don't have a pipeline at this time, the terraform code is already wrapped in a fully functional Test Kitchen suite for simple testing both by humans and machine. I actually don't want this to be automated by pipeline, Amazon is already getting enough of my money ;)
+Code is tested using kitchen-terraform and github actions.
 
 Testing is performed with Chef Inspec&trade; , used under license as I have no commercial purposes and this is a lab. Businesses looking to fork will want to take that into consideration. The testing suite is incomplete as of this writting but I'm planning on catching it up soonish.
 

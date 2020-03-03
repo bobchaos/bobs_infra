@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
 source 'https://rubygems.org' do
-  gem 'kitchen-terraform', '~> 5.0'
+  gem 'kitchen-terraform'
   gem 'train-aws'
 end
