@@ -208,55 +208,19 @@ resource "aws_secretsmanager_secret_version" "main_postgres_db_data" {
   secret_string = local.db_secret_contents
 }
 
-# A Goiardi Server
-resource aws_security_group "goiardi" {
-  name_prefix = "goiardi"
-  description = "Allows https ingress from main ALB"
-  vpc_id      = module.main_vpc.vpc_id
-
-  ingress {
-    from_port       = 80
-    to_port         = 80
-    protocol        = "tcp"
-    security_groups = [aws_security_group.main_alb.id]
-    # All RFC 1918 subnets
-    cidr_blocks = concat(var.main_vpc_public_subnets, var.main_vpc_private_subnets)
-  }
-
-  ingress {
-    from_port       = 22
-    to_port         = 22
-    protocol        = "tcp"
-    security_groups = [aws_security_group.bastion.id]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-resource "aws_iam_policy" "goiardi" {
-  name        = "${var.name_prefix}-goiardi"
-  path        = "/terraform/"
-  description = "Additional permissions required by the goiardi server to bootstrap itself"
-  policy      = data.aws_iam_policy_document.bucket_and_asm.json
-}
-
 module "goiardi" {
-  source = "./modules/aws-self-healer"
+  source = "./modules/private/goiardi"
 
   name_prefix            = "${var.name_prefix}-goiardi"
-  vpc_subnets            = module.main_vpc.private_subnets
-  vpc_security_group_ids = [aws_security_group.goiardi.id]
-  ami_id                 = data.aws_ami.centos7.id
-  instance_type          = "t3a.small"
+  main_vpc_id = module.main_vpc.vpc_id
+  main_alb_sg_id = module.main_alb.sg_id
+  main_vpc_public_subnets = module.main_vpc.public_subnets
+  main_vpc_private_subnets = module.main_vpc.private_subnets
+  bastion_sg_id = aws_security_group.bastion.id
+  instance_ami_id                 = data.aws_ami.centos7.id
   key_name               = var.key_name
   user_data              = [data.template_file.install_goiardi.rendered]
-  topology               = "offloaded"
   zone_id                = var.zone_id
-  iam_policies           = [aws_iam_policy.goiardi.arn]
-  alb_listener_arn       = aws_lb_listener.main_443.arn
+  iam_policy_json           = data.aws_iam_policy_document.goiardi.json
+  main_alb_listener_arn       = module.main_alb.listener_443_arn
 }

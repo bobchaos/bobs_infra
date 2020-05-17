@@ -64,6 +64,11 @@ output "main_alb_arn" {
   description = "ARN of the main load balancer"
 }
 
+output "main_alb_listener_arn" {
+  value = aws_lb_listener.main_443.arn
+  description = "ARN of the main ALB's HTTPS listener"
+}
+
 output "account_availability_zones" {
   value = data.aws_availability_zones.available.names
   description = "A list of all availability zones accessible to your account in the main region"

@@ -100,3 +100,8 @@ variable "goiardi_policy_name" {
   description = "Name of the policy.policyfile, excluding any extension"
   default     = "goiardi_server"
 }
+
+variable "spawn_goiardi" {
+  type = bool
+  default = false
+}
