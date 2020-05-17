@@ -66,12 +66,6 @@ variable "zone_id" {
   default     = "Z2RQ53XGJPAY8L"
 }
 
-variable "certificate_arn" {
-  type        = string
-  description = "An ACM certificate ARN for use with the load balancer and protected assets"
-  default     = "arn:aws:acm:us-east-1:943840344434:certificate/cf308c3c-9723-441a-bc45-7790df0f1920"
-}
-
 variable "main_db_pw" {
   type        = string
   description = "Password for the main database. Please don't commit it in git :O "
