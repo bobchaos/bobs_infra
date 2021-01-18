@@ -1,0 +1,11 @@
+# These are all the mandatory, no default variables. Substitute your own values and remove the `.example` file extension.
+# This file is gitignored, create an additional tfvars file to override variables with defaults
+name_prefix = "dev"
+key_name   = "ze_key"
+main_db_pw = "SomethingHardT0Guess"
+tags = {
+    TF_STATE = "your-tfstates-bucket/bobs_infra/core"
+    Owner = "Bobchaos"
+    Support = "chamberland.marc@gmail.com"
+}
+pgp_pubkey_name = your.pgp_key.pubkey.asc

@@ -5,5 +5,7 @@ exec 1>install_cinc.sh.out 2>&1
 
 # Get cinc and zero package
 curl -L https://omnitruck.cinc.sh/install.sh -v ${cinc_version} | bash
+aws2 s3 cp s3://${bucket_name}/${zero_package}
 
 # Run the package
+cinc-client -z

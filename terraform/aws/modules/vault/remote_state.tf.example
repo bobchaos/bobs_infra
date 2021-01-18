@@ -1,0 +1,17 @@
+# Add your values in here and rename this file to "remote_state.tf"
+data "terraform_remote_state" "network" {
+  backend = "s3"
+  config = {
+    bucket = "my-tfstates-bucket"
+    key    = "my_infra/core"
+    region = "us-east-1"
+    
+    # Optional but recommended role-based authentication.
+    role_arn = "arn:aws:iam::${data.aws_get_caller_identity.current.account_id}:role/tfstates"
+    session_name = "tfstates-read-my-infra-core"
+
+    # If your S3 bucket is encrypted
+    encrypt = true
+    kms_key_id = "c628794e-some-more-hexa-54654f69ed5"
+  }
+}

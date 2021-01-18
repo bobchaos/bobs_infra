@@ -1,0 +1,51 @@
+{
+  "min_packer_version": "1.6.5",
+  "_comment": "I wanted to try gp3 but they're not supported yet :( AWS needs to fix AMI creation, then Hashicorp need to adjust packer",
+  "variables": {
+    "aws_region": "us-east-1",
+    "consul_version": "1.9.0",
+    "download_url": "{{env `CONSUL_DOWNLOAD_URL`}}"
+  },
+  "builders": [{
+    "name": "amazon-linux-2-ami",
+    "ami_name": "consul-amz-linux-2-{{isotime | clean_resource_name}}-{{uuid}}",
+    "ami_description": "Consul Servers - {{isotime}} - Amazon Linux 2",
+    "instance_type": "t2.micro",
+    "region": "{{user `aws_region`}}",
+    "type": "amazon-ebs",
+    "encrypt_boot": true,
+    "source_ami_filter": {
+      "filters": {
+        "virtualization-type": "hvm",
+        "architecture": "x86_64",
+        "name": "*amzn2-ami-hvm-*-x86_64-gp2",
+        "block-device-mapping.volume-type": "gp2",
+        "root-device-type": "ebs"
+      },
+      "owners": ["amazon"],
+      "most_recent": true
+    },
+    "ssh_username": "ec2-user"
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "inline": [
+      "sudo yum install -y git",
+      "git clone --branch v0.8.0 --depth 1 https://github.com/hashicorp/terraform-aws-consul.git /tmp/terraform-aws-consul",
+      "common_options = '--ca-file-path /tmp/ca.crt.pem --cert-file-path /tmp/consul.crt.pem --key-file-path /tmp/consul.key.pem'",
+      "if test -n \"{{user `download_url`}}\"; then",
+      " /tmp/terraform-aws-consul/modules/install-consul/install-consul --download-url {{user `download_url`}} $common_options;",
+      "else",
+      " /tmp/terraform-aws-consul/modules/install-consul/install-consul --version {{user `consul_version`}} $common_options;",
+      "fi"
+    ],
+    "pause_before": "30s"
+  },{
+    "type": "shell",
+    "inline": [
+      "/tmp/terraform-aws-consul/modules/install-dnsmasq/install-dnsmasq",
+      "rm -rf /tmp/terraform-aws-consul"
+    ],
+    "pause_before": "30s"
+  }]
+}

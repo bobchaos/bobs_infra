@@ -5,6 +5,16 @@
 [._]ss[a-gi-z]
 [._]sw[a-p]
 
+# Packer
+# Cache objects
+packer_cache/
+
+# Crash log
+crash.log
+
+# For built boxes
+*.box
+
 # Terraform
 # Local .terraform directories
 terraform/**/.terraform/*
@@ -12,6 +22,11 @@ terraform/**/.terraform/*
 # .tfstate files
 **/*.tfstate
 **/*.tfstate.*
+
+# Private backend and remote_state files; They contain no secrets but terraform blocks
+# don't support vars. remote_state is excluded too but a sample is provided 
+**/backend.tf
+**/remote_state.tf
 
 # Private tfvars file
 **/priv.tfvars
@@ -25,10 +40,6 @@ terraform/**/override.tf
 **/override.tf.json
 **/*_override.tf
 **/*_override.tf.json
-
-# Include override files you do wish to add to version control using negated pattern
-#
-# !example_override.tf
 
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
 **/*tfplan*

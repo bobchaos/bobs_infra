@@ -1,0 +1,7 @@
+# These are all the mandatory, no default variables. Substitute your own values and remove the `.example` file extension.
+# This file is gitignored, create an additional tfvars if you wish to commit your vars to git.
+key_name = bobchaos
+default = {
+    Owner = "Bobchaos"
+    Support = "chamberland.marc@gmail.com"
+}

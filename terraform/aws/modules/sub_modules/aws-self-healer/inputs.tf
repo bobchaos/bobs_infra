@@ -31,7 +31,7 @@ variable "user_data" {
 }
 
 variable "vpc_security_group_ids" {
-  type        = list
+  type        = list(any)
   description = "A list of security groups to assign the instance"
 }
 
@@ -59,13 +59,13 @@ variable "zone_id" {
 }
 
 variable "tags" {
-  type        = map
+  type        = map(any)
   description = "A map of tags to apply to all relevant assets and propagate to the instance"
   default     = {}
 }
 
 variable "vpc_subnets" {
-  type        = list
+  type        = list(any)
   description = "A list of vpc subnets to use for the instance and it's assets. VPC ID is also derived from this value"
 }
 
@@ -80,7 +80,7 @@ variable "ebs_volumes" {
 }
 
 variable "iam_policies" {
-  type        = list
+  type        = list(any)
   description = "A list of IAM policies to add to the generated instance profile's role"
   default     = []
 }
