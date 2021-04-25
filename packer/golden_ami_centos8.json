@@ -1,0 +1,65 @@
+{
+  "min_packer_version": "1.6.5",
+  "_comment": "Let's put my employer's golden AMI to shame",
+  "variables": {
+    "aws_region": "us-east-1",
+    "hardening_version": "1.9.0",
+    "download_url": "{{env `CONSUL_DOWNLOAD_URL`}}"
+  },
+  "builders": [{
+    "name": "G-AMi-centos8",
+    "ami_name": "G-AMI-centos-8-{{isotime | clean_resource_name}}-{{uuid}}",
+    "ami_description": "G-AMI - {{isotime}} - Hardened CentOs 8",
+    "instance_type": "t2.micro",
+    "region": "{{user `aws_region`}}",
+    "type": "amazon-ebs",
+    "encrypt_boot": true,
+    "source_ami_filter": {
+      "filters": {
+        "virtualization-type": "hvm",
+        "architecture": "x86_64",
+        "name": "CentOS 8*x86_64",
+        "block-device-mapping.volume-type": "gp2",
+        "root-device-type": "ebs"
+      },
+      "owners": ["125523088429"],
+      "most_recent": true
+    },
+    "ssh_username": "centos"
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "inline": [
+      "sudo yum update -y"
+      ]
+  },{
+    "type": "ansible",
+    "playbook_file": "ansible/golden_ami_centos8.yml",
+    "galaxy_file": "ansible/collections/golden_ami_centos8.req.yml",
+    "pause_before": "30s"
+  },{
+    "type": "inspec",
+    "profile": "https://github.com/dev-sec/linux-baseline",
+    "command": "/opt/cinc-auditor/bin/cinc-auditor",
+    "valid_exit_codes": [0,100,101],
+    "pause_before": "5s"
+  },{
+    "type": "inspec",
+    "profile": "https://github.com/dev-sec/cis-dil-benchmark",
+    "command": "/opt/cinc-auditor/bin/cinc-auditor",
+    "valid_exit_codes": [0,100,101],
+    "pause_before": "5s"
+  },{
+    "type": "inspec",
+    "profile": "https://github.com/dev-sec/linux-patch-baseline",
+    "command": "/opt/cinc-auditor/bin/cinc-auditor",
+    "valid_exit_codes": [0,100,101],
+    "pause_before": "5s"
+  },{
+    "type": "inspec",
+    "profile": "https://github.com/dev-sec/ssh-baseline",
+    "command": "/opt/cinc-auditor/bin/cinc-auditor",
+    "valid_exit_codes": [0,100,101],
+    "pause_before": "5s"
+  }]
+}
