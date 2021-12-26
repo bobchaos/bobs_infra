@@ -5,15 +5,6 @@ locals {
   domain  = replace(data.aws_route53_zone.this.name, "/\\.$/", "")
 }
 
-# A dirty hack to implement dependencies on resources for this module
-# This is sometimes required to allow data used by Chef/Cloud-init to populate
-resource "null_resource" "this" {
-  count = var.depends != null ? 1 : 0
-  triggers = {
-    dependency_id = var.depends
-  }
-}
-
 # IAM policy handling
 resource "aws_iam_policy" "this" {
   count       = var.ebs_volumes != null || var.topology == "public" ? 1 : 0
@@ -114,7 +105,7 @@ resource "aws_eip" "this" {
 }
 
 # A dns record; Load balanced instances use alias records, others use plain A/AAAA
-resource "aws_route53_record" "thisa" {
+resource "aws_route53_record" "this" {
   # Private instances cannot have DNS assigned during terraform run since it won't exist
   # until the ASG's done it's part. Cloud-init can still accomodate such needs
   count   = var.topology == "private" ? 0 : 1
