@@ -1,47 +1,18 @@
 # Create core networking and basic security for a personal lab with all sorts of devopsy things
-terraform {
-  required_version = ">= 0.14.0"
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 3.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.0"
-    }
-    null = {
-      source  = "hashicorp/null"
-      version = "~> 3.0"
-    }
-    template = {
-      source  = "hashicorp/template"
-      version = "~> 2.2"
-    }
-  }
-}
-
 locals {
   tags = merge(var.tags, {
     Terraform = "true"
+    Stack     = var.name_prefix
   })
 
   asg_tags = [for k, v in local.tags : { key = k, value = v, propagate_at_launch = true }]
-
-  # db_secret_contents = jsonencode({
-  #   username = aws_db_instance.main_postgres.username
-  #   password = aws_db_instance.main_postgres.password
-  #   host     = aws_db_instance.main_postgres.address
-  #   port     = aws_db_instance.main_postgres.port
-  #   dbname   = aws_db_instance.main_postgres.name
-  # })
 }
 
 # First we setup all networking related concerns, like a VPC and default security groups.
 # External modules can be restrictive at times, but they're also quite convenient so...
 module "main_vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "2.64.0"
+  version = "3.11.0"
 
   name = join("-", [var.name_prefix, "main-vpc"])
   cidr = var.main_vpc_cidr
@@ -57,41 +28,33 @@ module "main_vpc" {
   single_nat_gateway = true
   # Ditto here
   enable_vpn_gateway = false
-
-  # Private endpoints are pretty cheap if you're not transfering crazy amount of data, so why not?
-  enable_ec2_autoscaling_endpoint             = true
-  enable_ec2_endpoint                         = true
-  enable_ec2messages_endpoint                 = true
-  enable_dynamodb_endpoint                    = true
-  enable_s3_endpoint                          = true
-  ec2_autoscaling_endpoint_security_group_ids = [aws_security_group.https_from_priv.id]
-
   create_database_subnet_group = true
-
+  enable_dns_hostnames = true
+  enable_dns_support   = true
   tags = local.tags
 }
 
 resource "aws_security_group" "https_from_priv" {
-  name_prefix = "https-from-priv"
-  description = "Allows inbound https from private and intra subnets"
+  name_prefix = "https-priv"
+  description = "Allows https to and from private and intra subnets"
   vpc_id      = module.main_vpc.vpc_id
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = concat(var.main_vpc_private_subnets, var.main_vpc_intra_subnets)
+    cidr_blocks = concat(module.main_vpc.private_subnets_cidr_blocks, module.main_vpc.intra_subnets_cidr_blocks)
   }
 
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = concat(module.main_vpc.private_subnets_cidr_blocks, module.main_vpc.public_subnets_cidr_blocks)
+    cidr_blocks = concat(module.main_vpc.private_subnets_cidr_blocks, module.main_vpc.intra_subnets_cidr_blocks)
   }
 }
 
-# An S3 bucket to hold some static assets, like chef policy artifacts.
+# An S3 bucket to hold some static assets, like Chef Policy artifacts.
 resource "aws_s3_bucket" "static_assets" {
   bucket_prefix = var.name_prefix
   force_destroy = ! var.protect_assets
@@ -174,69 +137,3 @@ resource "aws_lb_listener" "main_443" {
     }
   }
 }
-
-# # RDS postgres to support persistence for most management assets
-# resource "aws_security_group" "main_postgres" {
-#   name_prefix = var.name_prefix
-#   description = "TF managed security group for main postgres DB"
-#   vpc_id      = module.main_vpc.vpc_id
-
-#   ingress {
-#     from_port   = 5432
-#     to_port     = 5432
-#     protocol    = "tcp"
-#     cidr_blocks = concat(var.main_vpc_private_subnets, var.main_vpc_public_subnets)
-#   }
-
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-
-# }
-
-# resource "aws_db_parameter_group" "main_postgres" {
-#   name_prefix = var.name_prefix
-#   family      = "postgres11"
-#   description = "Managed by TF for the main postgresql database"
-#   tags        = local.tags
-# }
-
-# resource "aws_db_instance" "main_postgres" {
-#   identifier_prefix           = var.name_prefix
-#   allocated_storage           = 20
-#   storage_type                = "gp2"
-#   engine                      = "postgres"
-#   engine_version              = "11"
-#   instance_class              = "db.t3.micro"
-#   name                        = "postgres"
-#   username                    = "postgresuser"
-#   password                    = var.main_db_pw
-#   parameter_group_name        = aws_db_parameter_group.main_postgres.id
-#   allow_major_version_upgrade = false
-#   auto_minor_version_upgrade  = true
-#   db_subnet_group_name        = module.main_vpc.database_subnet_group
-#   deletion_protection         = var.protect_assets
-#   skip_final_snapshot         = true
-#   multi_az                    = false
-#   vpc_security_group_ids      = [aws_security_group.main_postgres.id]
-#   tags                        = local.tags
-# }
-
-# # stash secrets required to bootstrap our infra; further secrets will be provided by Vault
-# # Once bootstrapping is complete
-# resource "aws_secretsmanager_secret" "main_postgres_db_data" {
-#   name        = "main_postgres_db_data"
-#   description = "The password of the main postgresql database's admin user"
-#   # not supplying a key results in the master KMS key being used. It's fine for now
-#   kms_key_id              = null
-#   recovery_window_in_days = var.protect_assets ? 30 : 0
-#   tags                    = local.tags
-# }
-
-# resource "aws_secretsmanager_secret_version" "main_postgres_db_data" {
-#   secret_id     = aws_secretsmanager_secret.main_postgres_db_data.id
-#   secret_string = local.db_secret_contents
-# }

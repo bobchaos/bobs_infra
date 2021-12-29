@@ -27,3 +27,8 @@ output "bastion_sg_id" {
   description = "ID of the Bastion instance's security group"
   value       = aws_security_group.bastion.id
 }
+
+output "access_bootstrap_vault_sg_id" {
+  description = "ID of the security group that grants access to the bootstrap Vault"
+  value       = aws_security_group.access_bootstrap_vault.id
+}

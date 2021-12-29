@@ -1,0 +1,11 @@
+# These are all the mandatory, no default variables. Substitute your own values and remove the `.example` file extension.
+# This file is gitignored, create an additional tfvars file to override variables with defaults
+name_prefix = "dev"
+key_name   = "ze_key"
+tags = {
+    TF_STATE = "your-tfstates-bucket/bobs_infra/core"
+    Owner = "Bobchaos"
+    Support = "chamberland.marc@gmail.com"
+}
+zone_id = "Z2RQMAHZONEY8L"
+certificate_arn = "arn:aws:acm:us-east-1:99999955554:certificate/cf308c3c-some-more-hexa-values1920"

@@ -62,7 +62,7 @@ data "template_file" "fetch_eip" {
   vars = {
     # This crazy looking pattern is required, otherwise you won't be able to destroy
     # Because of the way data sources are evaluated. TF12 didn't fix everything :P
-    eip_alloc_id = element(concat(aws_eip.this.*.id, list("")), 0) == "" ? "We're probably destroying" : aws_eip.this.0.id
+    eip_alloc_id = element(concat(aws_eip.this.*.id, [""]), 0) == "" ? "We're probably destroying" : aws_eip.this.0.id
   }
 }
 
@@ -88,8 +88,8 @@ data "template_cloudinit_config" "this" {
 
   dynamic "part" {
     # This crazy looking pattern is required, otherwise you won't be able to destroy
-    # Because of the way data sources are evaluated. TF12 didn't fix everything :P
-    for_each = element(concat(aws_eip.this.*.id, list("")), 0) == "" ? [] : list(aws_eip.this.0.id)
+    # Because of the way data sources are evaluated.
+    for_each = element(concat(aws_eip.this.*.id, [""]), 0) == "" ? [] : list(aws_eip.this.0.id)
     content {
       filename     = "01_fetch_eip.sh"
       content_type = "text/x-shellscript"
@@ -99,7 +99,7 @@ data "template_cloudinit_config" "this" {
 
   dynamic "part" {
     # This crazy looking pattern is required, otherwise you won't be able to destroy
-    # Because of the way data sources are evaluated. TF12 didn't fix everything :P
+    # Because of the way data sources are evaluated.
     for_each = var.ebs_volumes != null ? var.ebs_volumes : {}
     content {
       filename     = "02_${part.key}_fetch_ebs_volume.sh"
@@ -109,7 +109,7 @@ data "template_cloudinit_config" "this" {
   }
 
   dynamic "part" {
-    for_each = var.user_data != null ? list(var.user_data) : []
+    for_each = var.user_data != null ? ["user_provided"] : []
     content {
       filename     = "03_user_supplied_conf"
       content_type = "text/cloud-config-archive"
