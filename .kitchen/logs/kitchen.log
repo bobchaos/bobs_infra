@@ -1,0 +1,28 @@
+E, [2022-01-05T15:05:17.259052 #17786] ERROR -- Kitchen: ------Exception-------
+E, [2022-01-05T15:05:17.259221 #17786] ERROR -- Kitchen: Class: Kitchen::UserError
+E, [2022-01-05T15:05:17.259270 #17786] ERROR -- Kitchen: Message: Kitchen YAML file /home/bobchaos/repos/bobs_infra/kitchen.yml does not exist.
+E, [2022-01-05T15:05:17.259282 #17786] ERROR -- Kitchen: ----------------------
+E, [2022-01-05T15:05:17.259292 #17786] ERROR -- Kitchen: ------Backtrace-------
+E, [2022-01-05T15:05:17.259300 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/test-kitchen-2.12.0/lib/kitchen/loader/yaml.rb:65:in `read'
+E, [2022-01-05T15:05:17.259310 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/test-kitchen-2.12.0/lib/kitchen/config.rb:153:in `data'
+E, [2022-01-05T15:05:17.259327 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/test-kitchen-2.12.0/lib/kitchen/config.rb:131:in `suites'
+E, [2022-01-05T15:05:17.259338 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/test-kitchen-2.12.0/lib/kitchen/config.rb:183:in `filter_instances'
+E, [2022-01-05T15:05:17.259347 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/test-kitchen-2.12.0/lib/kitchen/config.rb:142:in `build_instances'
+E, [2022-01-05T15:05:17.259371 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/test-kitchen-2.12.0/lib/kitchen/config.rb:116:in `instances'
+E, [2022-01-05T15:05:17.259399 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/test-kitchen-2.12.0/lib/kitchen/command.rb:109:in `filtered_instances'
+E, [2022-01-05T15:05:17.259419 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/test-kitchen-2.12.0/lib/kitchen/command.rb:139:in `parse_subcommand'
+E, [2022-01-05T15:05:17.259450 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/test-kitchen-2.12.0/lib/kitchen/command/list.rb:29:in `call'
+E, [2022-01-05T15:05:17.259476 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/test-kitchen-2.12.0/lib/kitchen/cli.rb:52:in `perform'
+E, [2022-01-05T15:05:17.259489 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/test-kitchen-2.12.0/lib/kitchen/cli.rb:120:in `list'
+E, [2022-01-05T15:05:17.259499 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/thor-1.2.1/lib/thor/command.rb:27:in `run'
+E, [2022-01-05T15:05:17.259509 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/thor-1.2.1/lib/thor/invocation.rb:127:in `invoke_command'
+E, [2022-01-05T15:05:17.259519 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/thor-1.2.1/lib/thor.rb:392:in `dispatch'
+E, [2022-01-05T15:05:17.259548 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/thor-1.2.1/lib/thor/base.rb:485:in `start'
+E, [2022-01-05T15:05:17.259567 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/test-kitchen-2.12.0/bin/kitchen:11:in `block in <top (required)>'
+E, [2022-01-05T15:05:17.259578 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/test-kitchen-2.12.0/lib/kitchen/errors.rb:170:in `with_friendly_errors'
+E, [2022-01-05T15:05:17.259589 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/gems/test-kitchen-2.12.0/bin/kitchen:11:in `<top (required)>'
+E, [2022-01-05T15:05:17.259599 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/bin/kitchen:23:in `load'
+E, [2022-01-05T15:05:17.259609 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/bin/kitchen:23:in `<main>'
+E, [2022-01-05T15:05:17.259619 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/bin/ruby_executable_hooks:22:in `eval'
+E, [2022-01-05T15:05:17.259628 #17786] ERROR -- Kitchen: /home/bobchaos/.rvm/gems/ruby-2.7.2/bin/ruby_executable_hooks:22:in `<main>'
+E, [2022-01-05T15:05:17.259658 #17786] ERROR -- Kitchen: ----End Backtrace-----

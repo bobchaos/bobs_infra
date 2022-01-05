@@ -1,0 +1,18 @@
+name: infra-core
+title: Core Terraform module.
+maintainer: bobchaos
+copyright: Marc Chamberland
+copyright_email: chamberland.marc@gmail.com
+license: Apache-2.0
+summary: Verifies the Core Terraform module is functioning as intended.
+version: 0.1.0
+inspec_version: '~> 4'
+inputs:
+  - name: main_vpc_id
+    description: ID of the main_vpc terraform sub-module.
+    type: string
+    required: true
+
+depends:
+  - name: inspec-aws
+    url: https://github.com/inspec/inspec-aws/archive/main.tar.gz

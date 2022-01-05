@@ -1,0 +1,5 @@
+---
+name: default
+depends:
+ - name: infra-core
+   path: ../../../../../../../inspec/infra-core

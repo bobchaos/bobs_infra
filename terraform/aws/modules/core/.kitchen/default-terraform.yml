@@ -1,0 +1,57 @@
+---
+last_action: verify
+last_error: 
+kitchen_terraform_outputs:
+  bastion_sg_id:
+    sensitive: false
+    type: string
+    value: sg-06156ec7dbcb3ee7c
+  main_vpc_database_subnets:
+    sensitive: false
+    type:
+    - tuple
+    - - string
+      - string
+      - string
+    value:
+    - subnet-00e60d70740e123fa
+    - subnet-0d6cedcde401a1513
+    - subnet-022297bd48b1b2e4f
+  main_vpc_id:
+    sensitive: false
+    type: string
+    value: vpc-0d8ce37e37d796d0a
+  main_vpc_intra_subnets:
+    sensitive: false
+    type:
+    - tuple
+    - - string
+      - string
+      - string
+    value:
+    - subnet-05d7a1bd9b7551658
+    - subnet-099d098a5552c17e4
+    - subnet-0facd2db54b3037ad
+  main_vpc_private_subnets:
+    sensitive: false
+    type:
+    - tuple
+    - - string
+      - string
+      - string
+    value:
+    - subnet-0405b7af6f04bb540
+    - subnet-05912d7108372ef35
+    - subnet-0c84467b1b770f60a
+  main_vpc_public_subnets:
+    sensitive: false
+    type:
+    - tuple
+    - - string
+      - string
+      - string
+    value:
+    - subnet-0405b7af6f04bb540
+    - subnet-05912d7108372ef35
+    - subnet-0c84467b1b770f60a
+kitchen_terraform_variables: {}
