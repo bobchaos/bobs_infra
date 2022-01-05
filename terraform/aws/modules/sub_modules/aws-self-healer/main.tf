@@ -74,10 +74,8 @@ resource "aws_autoscaling_group" "this" {
   }
 }
 
-# Optional EBS volumes. Note there is no attachement so as to avoid race conditions 
-# with create_before_destroy lifecycle. The instances will setup the attachements
-# themselves using cloud-init. See here for the full explanation: 
-# https://docs.aws.amazon.com/autoscaling/ec2/userguide/healthcheck.html#replace-unhealthy-instance
+# Optional EBS volumes. Note there is no attachement since the instances won't exist until after TF
+# is done executing. The instances will setup the attachements themselves using cloud-init. 
 
 # EBS volumes _must_ be spawned in the same AZ as the instance they will be attached to
 # so we force the selection of a specific AZ. This unfortunately prevents instances spawned
@@ -96,8 +94,8 @@ resource "aws_ebs_volume" "this" {
   tags              = var.tags
 }
 
-# An EIP if this instance is internet facing. Do note there is no attachement for the
-# same reason as the EBS volume.
+# An EIP if this instance is internet facing. No association is done for the same reasons
+# as the above EBS volumes.
 resource "aws_eip" "this" {
   count = var.topology == "public" ? 1 : 0
   vpc   = true

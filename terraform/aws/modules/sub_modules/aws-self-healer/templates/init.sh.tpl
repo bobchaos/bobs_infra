@@ -18,7 +18,7 @@ echo -e "Network connectivity established\n"
 yum update -y
 
 # Get AWS CLI. V2 is beta, but also 100% self-contained, making it 1000% less of a hassle
-curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 
 # Extract and install aws2 + jq to parse it's output
 yum install -y unzip jq
@@ -28,4 +28,4 @@ rm -f awscliv2.zip
 
 mkdir -p /usr/local/bin
 
-ln -s /usr/local/aws-cli/v2/current/bin/aws2 /usr/local/bin/aws2
+ln -s /usr/local/aws-cli/v2/current/bin/aws /usr/local/bin/aws

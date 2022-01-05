@@ -1,3 +1,6 @@
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
+
 data "aws_subnet" "this" {
   id = random_shuffle.subnets.result[0]
 }
@@ -37,12 +40,13 @@ data "aws_iam_policy_document" "this_role" {
 
 data "aws_iam_policy_document" "this_instance" {
   dynamic "statement" {
-    for_each = var.topology == "public" ? ["add me"] : []
+    for_each = var.topology == "public" ? aws_eip.this[*].id : []
     content {
       sid       = "${replace(var.name_prefix, "-", "")}Eip"
       effect    = "Allow"
       actions   = ["ec2:DescribeAddresses", "ec2:AssociateAddress"]
-      resources = ["*"]
+      # for reasons beyond me, the aws_eip resource doesn't output the ARN.
+      resources = ["arn:aws:ec2:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:elastic-ip/${statement.value}"]
     }
   }
   dynamic "statement" {
@@ -53,26 +57,6 @@ data "aws_iam_policy_document" "this_instance" {
       actions   = ["ec2:DescribeVolumeStatus", "ec2:DescribeVolumes", "ec2:AttachVolume"]
       resources = statement.value
     }
-  }
-}
-
-data "template_file" "fetch_eip" {
-  count    = var.topology == "public" ? 1 : 0
-  template = file("${path.module}/templates/fetch_eip.sh.tpl")
-  vars = {
-    # This crazy looking pattern is required, otherwise you won't be able to destroy
-    # Because of the way data sources are evaluated. TF12 didn't fix everything :P
-    eip_alloc_id = element(concat(aws_eip.this.*.id, [""]), 0) == "" ? "We're probably destroying" : aws_eip.this.0.id
-  }
-}
-
-data "template_file" "fetch_ebs_volume" {
-  for_each = var.ebs_volumes != null ? var.ebs_volumes : {}
-  template = file("${path.module}/templates/fetch_ebs_volume.sh.tpl")
-  vars = {
-    mount_point = lookup(each.value, "mount_point", "/")
-    device      = lookup(each.value, "device", "/dev/sdf")
-    volume_id   = aws_ebs_volume.this[each.key].id
   }
 }
 
@@ -87,24 +71,26 @@ data "template_cloudinit_config" "this" {
   }
 
   dynamic "part" {
-    # This crazy looking pattern is required, otherwise you won't be able to destroy
-    # Because of the way data sources are evaluated.
-    for_each = element(concat(aws_eip.this.*.id, [""]), 0) == "" ? [] : list(aws_eip.this.0.id)
+    for_each = var.topology == "public" ? aws_eip.this[*].id : []
     content {
-      filename     = "01_fetch_eip.sh"
+      filename     = "01_fetch_eip_${part.value}.sh"
       content_type = "text/x-shellscript"
-      content      = data.template_file.fetch_eip.0.rendered
+      content      = templatefile("${path.module}/templates/fetch_eip.sh.tpl", {
+        eip_alloc_id = part.value
+      })
     }
   }
 
   dynamic "part" {
-    # This crazy looking pattern is required, otherwise you won't be able to destroy
-    # Because of the way data sources are evaluated.
     for_each = var.ebs_volumes != null ? var.ebs_volumes : {}
     content {
       filename     = "02_${part.key}_fetch_ebs_volume.sh"
       content_type = "text/x-shellscript"
-      content      = data.template_file.fetch_ebs_volume[part.key].rendered
+      content      = templatefile("${path.module}/templates/fetch_ebs_volume.sh.tpl", {
+        mount_point = lookup(part.value, "mount_point", "/")
+        device      = lookup(part.value, "device", "/dev/sdf")
+        volume_id   = aws_ebs_volume.this[part.key].id
+      })
     }
   }
 
